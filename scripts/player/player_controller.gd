@@ -13,7 +13,7 @@ const POSITION_SEND_INTERVAL := 3 # physics frames between position updates
 
 @onready var head: Node3D = $Head
 @onready var camera_first_person: Camera3D = $Head/Camera3D
-@onready var camera_third_person: Camera3D = $Head/ThirdPersonArm/ThirdPersonCamera
+@onready var camera_third_person: Camera3D = $Head/ThirdPersonPivot/ThirdPersonArm/ThirdPersonCamera
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _flying := false
