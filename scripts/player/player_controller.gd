@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const SPEED := 5.0
+const SPRINT_MULT := 1.8
 const FLY_SPEED := 20.0
 const FLY_SPEED_MULT_MIN := 0.2
 const FLY_SPEED_MULT_MAX := 20.0
@@ -11,11 +12,14 @@ const WORLD_LIMIT := 5000.0
 const POSITION_SEND_INTERVAL := 3 # physics frames between position updates
 
 @onready var head: Node3D = $Head
+@onready var camera_first_person: Camera3D = $Head/Camera3D
+@onready var camera_third_person: Camera3D = $Head/ThirdPersonArm/ThirdPersonCamera
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _flying := false
 var _fly_speed_mult := 1.0
 var _position_send_counter := 0
+var _third_person := false
 
 func _ready() -> void:
 	# No per-peer player spawning/replication exists yet (each client's Player
@@ -34,6 +38,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_BACKSPACE:
 		_toggle_fly()
+	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
+		_toggle_camera()
 	elif event is InputEventMouseButton and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif _flying and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -45,6 +51,11 @@ func _toggle_fly() -> void:
 	_flying = not _flying
 	velocity = Vector3.ZERO
 	$CollisionShape3D.disabled = _flying
+
+func _toggle_camera() -> void:
+	_third_person = not _third_person
+	camera_first_person.current = not _third_person
+	camera_third_person.current = _third_person
 
 func _physics_process(delta: float) -> void:
 	if _flying:
@@ -58,14 +69,15 @@ func _physics_process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_SPACE) and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
+	var move_speed := SPEED * SPRINT_MULT if Input.is_key_pressed(KEY_SHIFT) else SPEED
 	var input_dir := _get_input_dir()
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	if direction:
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
+		velocity.x = direction.x * move_speed
+		velocity.z = direction.z * move_speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+		velocity.x = move_toward(velocity.x, 0, move_speed)
+		velocity.z = move_toward(velocity.z, 0, move_speed)
 
 	move_and_slide()
 	_clamp_to_world_bounds()

@@ -130,7 +130,11 @@ func get_world_data_dir() -> String:
 # identify, same guard as world-state writes.
 
 func send_position(pos: Vector3, rot_y: float, head_pitch: float) -> void:
-	if is_server:
+	# unique_id defaults to 1 both for the real server AND for a scene with
+	# no multiplayer peer at all (e.g. running test_world.tscn directly,
+	# bypassing Net.join()) - a real connected client is never 1, so this
+	# also naturally skips sending when there's nothing to send to.
+	if is_server or multiplayer.get_unique_id() == 1:
 		return
 	rpc_id(1, "_update_position", pos, rot_y, head_pitch)
 
@@ -156,7 +160,7 @@ func _peer_position_update(peer_id: int, pos: Vector3, rot_y: float, head_pitch:
 func set_world_value(key: String, value: Variant) -> void:
 	if is_server:
 		_apply_world_value(key, value)
-	else:
+	elif multiplayer.get_unique_id() != 1:
 		rpc_id(1, "_request_set_world_value", key, value)
 
 @rpc("any_peer", "reliable")
