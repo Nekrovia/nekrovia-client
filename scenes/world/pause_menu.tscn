@@ -1,0 +1,75 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pause_menu.gd" id="1"]
+[ext_resource type="Theme" path="res://theme/nekrovia_theme.tres" id="2_theme"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+script = ExtResource("1")
+player_path = NodePath("../Player")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="MainPanel" type="VBoxContainer" parent="."]
+theme = ExtResource("2_theme")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -110.0
+offset_top = -80.0
+offset_right = 110.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MainPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Menu"
+
+[node name="ReturnButton" type="Button" parent="MainPanel"]
+layout_mode = 2
+focus_mode = 0
+text = "Powrot"
+
+[node name="HelpButton" type="Button" parent="MainPanel"]
+layout_mode = 2
+focus_mode = 0
+text = "Pomoc"
+
+[node name="LeaveButton" type="Button" parent="MainPanel"]
+layout_mode = 2
+focus_mode = 0
+text = "Wyjscie z serwera"
+
+[node name="HelpPanel" type="VBoxContainer" parent="."]
+theme = ExtResource("2_theme")
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -120.0
+offset_right = 160.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="HelpLabel" type="Label" parent="HelpPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = ""
+
+[node name="BackButton" type="Button" parent="HelpPanel"]
+layout_mode = 2
+focus_mode = 0
+text = "Wstecz"

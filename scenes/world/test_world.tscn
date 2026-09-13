@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/world/terrain_manager.gd" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://addons/sky_3d/src/Sky3D.gd" id="4_sky3d"]
 [ext_resource type="Script" path="res://scripts/world/sky_tuning.gd" id="5_skytuning"]
 [ext_resource type="Script" path="res://scripts/world/remote_players_manager.gd" id="6_remoteplayers"]
+[ext_resource type="PackedScene" path="res://scenes/world/pause_menu.tscn" id="7_pausemenu"]
 
 [node name="TestWorld" type="Node3D"]
 
@@ -26,3 +27,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 80, 0)
 
 [node name="RemotePlayersManager" type="Node3D" parent="."]
 script = ExtResource("6_remoteplayers")
+
+[node name="PauseMenu" parent="." instance=ExtResource("7_pausemenu")]

@@ -20,6 +20,10 @@ var _flying := false
 var _fly_speed_mult := 1.0
 var _position_send_counter := 0
 var _third_person := false
+var _menu_open := false
+
+func set_menu_open(open: bool) -> void:
+	_menu_open = open
 
 func _ready() -> void:
 	# No per-peer player spawning/replication exists yet (each client's Player
@@ -30,18 +34,16 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _menu_open:
+		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		head.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
 		head.rotation.x = clamp(head.rotation.x, -1.5, 1.5)
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_BACKSPACE:
 		_toggle_fly()
 	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_V:
 		_toggle_camera()
-	elif event is InputEventMouseButton and event.pressed and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif _flying and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
 		_fly_speed_mult = clampf(_fly_speed_mult * FLY_SPEED_MULT_STEP, FLY_SPEED_MULT_MIN, FLY_SPEED_MULT_MAX)
 	elif _flying and event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
@@ -58,6 +60,8 @@ func _toggle_camera() -> void:
 	camera_third_person.current = _third_person
 
 func _physics_process(delta: float) -> void:
+	if _menu_open:
+		return
 	if _flying:
 		_process_fly(delta)
 		_clamp_to_world_bounds()
