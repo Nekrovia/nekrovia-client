@@ -174,3 +174,39 @@ horizontal_alignment = 1
 vertical_alignment = 1
 text = ""
 visible = false
+
+[node name="ProfilePanel" type="VBoxContainer" parent="ContentArea"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -50.0
+offset_right = 160.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+visible = false
+
+[node name="TitleLabel" type="Label" parent="ContentArea/ProfilePanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Twoja nazwa gracza"
+
+[node name="NameEdit" type="LineEdit" parent="ContentArea/ProfilePanel"]
+layout_mode = 2
+max_length = 24
+placeholder_text = "Gracz"
+
+[node name="ProfileStatusLabel" type="Label" parent="ContentArea/ProfilePanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = ""
+
+[node name="IdLabel" type="Label" parent="ContentArea/ProfilePanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = ""

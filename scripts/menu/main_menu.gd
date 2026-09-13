@@ -15,6 +15,10 @@ const SERVERS := [
 @onready var server_list: VBoxContainer = $ContentArea/JoinPanel/ServerList
 @onready var status_label: Label = $ContentArea/JoinPanel/StatusLabel
 @onready var placeholder_panel: Label = $ContentArea/PlaceholderPanel
+@onready var profile_panel: VBoxContainer = $ContentArea/ProfilePanel
+@onready var profile_name_edit: LineEdit = $ContentArea/ProfilePanel/NameEdit
+@onready var profile_status_label: Label = $ContentArea/ProfilePanel/ProfileStatusLabel
+@onready var profile_id_label: Label = $ContentArea/ProfilePanel/IdLabel
 
 func _ready() -> void:
 	for server in SERVERS:
@@ -26,10 +30,14 @@ func _ready() -> void:
 	Net.disconnected_from_server.connect(_on_connection_failed)
 
 	btn_join.pressed.connect(_show_join_panel)
-	btn_profile.pressed.connect(_show_placeholder.bind("Profil - wkrotce"))
+	btn_profile.pressed.connect(_show_profile_panel)
 	btn_settings.pressed.connect(_show_placeholder.bind("Ustawienia - wkrotce"))
 	btn_tools.pressed.connect(_show_placeholder.bind("Nasze narzedzia - wkrotce"))
 	btn_update.pressed.connect(_on_update_pressed)
+
+	profile_name_edit.text = Profile.player_name
+	profile_name_edit.text_submitted.connect(_on_profile_name_submitted)
+	profile_id_label.text = "ID klienta: %s" % Profile.client_id
 
 	UpdateChecker.update_available.connect(_on_update_available)
 	UpdateChecker.up_to_date.connect(_on_up_to_date)
@@ -37,17 +45,42 @@ func _ready() -> void:
 	UpdateChecker.update_applied.connect(_on_update_applied)
 	UpdateChecker.update_failed.connect(_on_update_failed)
 
-	_show_join_panel()
+	if Profile.has_valid_name():
+		_show_join_panel()
+	_update_name_gate()
 	UpdateChecker.check_for_update()
+
+func _update_name_gate() -> void:
+	var valid := Profile.has_valid_name()
+	btn_join.disabled = not valid
+	btn_settings.disabled = not valid
+	btn_tools.disabled = not valid
+	if not valid:
+		profile_status_label.text = "Ustaw nazwe gracza (min. 3 litery, bez cyfr), zeby grac."
+		_show_profile_panel()
 
 func _show_join_panel() -> void:
 	join_panel.show()
 	placeholder_panel.hide()
+	profile_panel.hide()
 
 func _show_placeholder(text: String) -> void:
 	placeholder_panel.text = text
 	placeholder_panel.show()
 	join_panel.hide()
+	profile_panel.hide()
+
+func _show_profile_panel() -> void:
+	profile_panel.show()
+	join_panel.hide()
+	placeholder_panel.hide()
+
+func _on_profile_name_submitted(new_name: String) -> void:
+	if Profile.set_player_name(new_name):
+		profile_status_label.text = "Zapisano: %s" % Profile.player_name
+		_update_name_gate()
+	else:
+		profile_status_label.text = "Nazwa: min. 3 litery, tylko litery (bez cyfr/symboli)."
 
 func _add_server_row(server: Dictionary) -> void:
 	var row := HBoxContainer.new()
@@ -67,7 +100,7 @@ func _add_server_row(server: Dictionary) -> void:
 
 func _on_join_pressed(server: Dictionary) -> void:
 	status_label.text = "Laczenie z %s..." % server["address"]
-	Net.join(server["address"], server["port"], "Gracz", "player", server.get("token", ""))
+	Net.join(server["address"], server["port"], Profile.player_name, "player", server.get("token", ""), Profile.client_id)
 
 func _on_connected() -> void:
 	status_label.text = "Polaczono, wczytuje swiat..."

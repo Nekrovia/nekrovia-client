@@ -7,13 +7,15 @@ const FLY_SPEED_MULT_MAX := 20.0
 const FLY_SPEED_MULT_STEP := 1.2
 const JUMP_VELOCITY := 4.5
 const MOUSE_SENSITIVITY := 0.003
-const WORLD_LIMIT := 48.0
+const WORLD_LIMIT := 5000.0
+const POSITION_SEND_INTERVAL := 3 # physics frames between position updates
 
 @onready var head: Node3D = $Head
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _flying := false
 var _fly_speed_mult := 1.0
+var _position_send_counter := 0
 
 func _ready() -> void:
 	# No per-peer player spawning/replication exists yet (each client's Player
@@ -48,6 +50,7 @@ func _physics_process(delta: float) -> void:
 	if _flying:
 		_process_fly(delta)
 		_clamp_to_world_bounds()
+		_send_position()
 		return
 
 	if not is_on_floor():
@@ -66,6 +69,14 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_clamp_to_world_bounds()
+	_send_position()
+
+func _send_position() -> void:
+	_position_send_counter += 1
+	if _position_send_counter < POSITION_SEND_INTERVAL:
+		return
+	_position_send_counter = 0
+	Net.send_position(global_position, rotation.y, head.rotation.x)
 
 func _clamp_to_world_bounds() -> void:
 	var clamped_x := clampf(global_position.x, -WORLD_LIMIT, WORLD_LIMIT)

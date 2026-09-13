@@ -7,6 +7,8 @@ signal connection_failed()
 signal disconnected_from_server()
 signal world_state_updated(key: String, value: Variant)
 signal world_state_received()
+signal peer_list_updated()
+signal peer_position_updated(peer_id: int, pos: Vector3, rot_y: float, head_pitch: float)
 
 const DEFAULT_PORT := 8910
 const SAVE_DIR := "world_data"
@@ -16,8 +18,10 @@ var is_server: bool = false
 var my_name: String = ""
 var my_role: String = ""
 var my_token: String = ""
+var my_client_id: String = ""
 
-# Server-side only.
+# Server-side: every identified peer. Client-side: mirrored copy the server
+# broadcasts on every join/leave, so the client can look up e.g. names.
 var peers: Dictionary = {} # peer_id (int) -> {name: String, role: String}
 var world_state: Dictionary = {}
 var server_token: String = ""
@@ -41,7 +45,7 @@ func host(port: int = DEFAULT_PORT, token: String = "") -> void:
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	print("Net[server]: listening on port %d" % port)
 
-func join(address: String, port: int = DEFAULT_PORT, display_name: String = "player", role: String = "player", token: String = "") -> void:
+func join(address: String, port: int = DEFAULT_PORT, display_name: String = "player", role: String = "player", token: String = "", client_id: String = "") -> void:
 	var peer := ENetMultiplayerPeer.new()
 	var err := peer.create_client(address, port)
 	if err != OK:
@@ -50,6 +54,7 @@ func join(address: String, port: int = DEFAULT_PORT, display_name: String = "pla
 	my_name = display_name
 	my_role = role
 	my_token = token
+	my_client_id = client_id
 	multiplayer.multiplayer_peer = peer
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
@@ -70,7 +75,7 @@ func _on_peer_disconnected(id: int) -> void:
 	_broadcast_peer_list()
 
 @rpc("any_peer", "reliable")
-func _identify(display_name: String, role: String, token: String) -> void:
+func _identify(display_name: String, role: String, token: String, client_id: String) -> void:
 	if not is_server:
 		return
 	var id := multiplayer.get_remote_sender_id()
@@ -78,8 +83,8 @@ func _identify(display_name: String, role: String, token: String) -> void:
 		print("Net[server]: rejected peer %d (bad token)" % id)
 		multiplayer.multiplayer_peer.disconnect_peer(id)
 		return
-	peers[id] = {"name": display_name, "role": role}
-	print("Net[server]: identified peer %d as '%s' (%s)" % [id, display_name, role])
+	peers[id] = {"name": display_name, "role": role, "client_id": client_id}
+	print("Net[server]: identified peer %d as '%s' (%s, client_id=%s)" % [id, display_name, role, client_id])
 	rpc_id(id, "_welcome", world_state)
 	peer_joined.emit(id, peers[id])
 	_broadcast_peer_list()
@@ -92,7 +97,7 @@ func _broadcast_peer_list() -> void:
 
 func _on_connected_to_server() -> void:
 	print("Net[client]: connected to server")
-	rpc_id(1, "_identify", my_name, my_role, my_token)
+	rpc_id(1, "_identify", my_name, my_role, my_token, my_client_id)
 	connected_to_server.emit()
 
 func _on_connection_failed() -> void:
@@ -111,10 +116,38 @@ func _welcome(state: Dictionary) -> void:
 
 @rpc("authority", "reliable")
 func _peer_list(list: Dictionary) -> void:
+	peers = list
 	print("Net[client]: peer list updated (%d connected)" % list.size())
+	peer_list_updated.emit()
 
 func get_world_data_dir() -> String:
 	return _world_data_dir()
+
+# --- Player position sync ---
+# Unreliable + frequent by design (a dropped position packet is superseded
+# by the next one a fraction of a second later - reliability would only add
+# latency here). Server relays after verifying the sender already passed
+# identify, same guard as world-state writes.
+
+func send_position(pos: Vector3, rot_y: float, head_pitch: float) -> void:
+	if is_server:
+		return
+	rpc_id(1, "_update_position", pos, rot_y, head_pitch)
+
+@rpc("any_peer", "unreliable_ordered")
+func _update_position(pos: Vector3, rot_y: float, head_pitch: float) -> void:
+	if not is_server:
+		return
+	var id := multiplayer.get_remote_sender_id()
+	if not peers.has(id):
+		return
+	for other_id in peers.keys():
+		if other_id != id:
+			rpc_id(other_id, "_peer_position_update", id, pos, rot_y, head_pitch)
+
+@rpc("authority", "unreliable_ordered")
+func _peer_position_update(peer_id: int, pos: Vector3, rot_y: float, head_pitch: float) -> void:
+	peer_position_updated.emit(peer_id, pos, rot_y, head_pitch)
 
 # --- World state: sandbox persistence + sync ---
 # Generic key/value store for now (no asset schema decided yet) so the
