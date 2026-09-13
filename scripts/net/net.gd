@@ -164,6 +164,7 @@ func _broadcast_chat_message(sender_name: String, text: String) -> void:
 	for id in peers.keys():
 		rpc_id(id, "_receive_chat_message", sender_name, text)
 	print("Net[chat] %s: %s" % [sender_name, text])
+	chat_message_received.emit(sender_name, text)
 
 @rpc("authority", "reliable")
 func _receive_chat_message(sender_name: String, text: String) -> void:
