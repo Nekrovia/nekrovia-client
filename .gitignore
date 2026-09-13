@@ -8,3 +8,6 @@
 
 # Claude Code session state, not project content
 /.claude/
+
+# Per-machine path to the Godot executable, saved by Uruchom_gre.bat
+/godot_path.txt
