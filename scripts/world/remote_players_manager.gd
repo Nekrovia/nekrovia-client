@@ -23,6 +23,14 @@ func _sync_avatars() -> void:
 			_spawn_avatar(id)
 		else:
 			_avatars[id].set_display_name(Net.peers[id].get("name", str(id)))
+	# peer_list_updated is what actually fires client-side on a
+	# disconnect (Net.peer_left is only ever emitted on the server) - so
+	# this diff against the current list is what has to catch removals.
+	for id in _avatars.keys().duplicate():
+		if not Net.peers.has(id):
+			_avatars[id].queue_free()
+			_avatars.erase(id)
+			print("RemotePlayersManager: removed avatar for peer %d (left)" % id)
 
 func _spawn_avatar(id: int) -> void:
 	var avatar := REMOTE_PLAYER_SCENE.instantiate()
