@@ -1,0 +1,32 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/chat.gd" id="1"]
+
+[node name="Chat" type="CanvasLayer"]
+script = ExtResource("1")
+player_path = NodePath("../Player")
+
+[node name="LogContainer" type="VBoxContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -230.0
+offset_right = 420.0
+offset_bottom = -46.0
+grow_vertical = 0
+alignment = 2
+
+[node name="InputBox" type="LineEdit" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -40.0
+offset_right = 420.0
+offset_bottom = -12.0
+grow_vertical = 0
+placeholder_text = "Napisz wiadomosc..."
+max_length = 240

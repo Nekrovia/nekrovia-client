@@ -9,6 +9,7 @@ signal world_state_updated(key: String, value: Variant)
 signal world_state_received()
 signal peer_list_updated()
 signal peer_position_updated(peer_id: int, pos: Vector3, rot_y: float, head_pitch: float)
+signal chat_message_received(sender_name: String, text: String)
 
 const DEFAULT_PORT := 8910
 const SAVE_DIR := "world_data"
@@ -122,6 +123,41 @@ func _peer_list(list: Dictionary) -> void:
 
 func get_world_data_dir() -> String:
 	return _world_data_dir()
+
+# --- Chat ---
+# Reliable, server-relayed so everyone (including the sender) sees the same
+# messages in the same order - the server is the source of truth here too,
+# same as everything else.
+
+func send_chat_message(text: String) -> void:
+	text = text.strip_edges()
+	if text == "":
+		return
+	if is_server:
+		_broadcast_chat_message(my_name, text)
+	elif multiplayer.get_unique_id() != 1:
+		rpc_id(1, "_request_chat_message", text)
+
+@rpc("any_peer", "reliable")
+func _request_chat_message(text: String) -> void:
+	if not is_server:
+		return
+	var id := multiplayer.get_remote_sender_id()
+	if not peers.has(id):
+		return
+	text = text.strip_edges()
+	if text == "" or text.length() > 240:
+		return
+	_broadcast_chat_message(peers[id].get("name", str(id)), text)
+
+func _broadcast_chat_message(sender_name: String, text: String) -> void:
+	for id in peers.keys():
+		rpc_id(id, "_receive_chat_message", sender_name, text)
+	print("Net[chat] %s: %s" % [sender_name, text])
+
+@rpc("authority", "reliable")
+func _receive_chat_message(sender_name: String, text: String) -> void:
+	chat_message_received.emit(sender_name, text)
 
 # --- Player position sync ---
 # Unreliable + frequent by design (a dropped position packet is superseded
