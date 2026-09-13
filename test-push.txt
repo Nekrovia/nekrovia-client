@@ -1,0 +1,3 @@
+Test push file - nekrovia-client
+Created: 2026-09-13
+Purpose: verify push access and auto-update pipeline.
