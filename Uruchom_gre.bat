@@ -28,8 +28,14 @@ if not exist "!GODOT_EXE!" (
 :found
 echo !GODOT_EXE!>"%GODOT_PATH_FILE%"
 
-if not exist "%~dp0.godot\global_script_class_cache.cfg" (
-    echo Pierwsze uruchomienie na tym komputerze - importuje projekt, to potrwa chwile...
+set NEEDS_IMPORT=1
+if exist "%~dp0.godot\global_script_class_cache.cfg" (
+    findstr /C:"Sky3D" "%~dp0.godot\global_script_class_cache.cfg" >nul 2>&1
+    if not errorlevel 1 set NEEDS_IMPORT=0
+)
+
+if "%NEEDS_IMPORT%"=="1" (
+    echo Importuje projekt ^(brakuje lub niekompletny jest cache klas^), to potrwa chwile...
     "!GODOT_EXE!" --headless --editor --quit --path "%~dp0."
 )
 
