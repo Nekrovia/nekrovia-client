@@ -11,3 +11,6 @@
 
 # Per-machine path to the Godot executable, saved by Uruchom_gre.bat
 /godot_path.txt
+
+# Per-machine marker of which commit was last imported, saved by Uruchom_gre.bat
+/.last_import_commit.txt

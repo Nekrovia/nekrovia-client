@@ -2,6 +2,7 @@
 setlocal EnableDelayedExpansion
 
 set GODOT_PATH_FILE=%~dp0godot_path.txt
+set LAST_IMPORT_FILE=%~dp0.last_import_commit.txt
 
 if exist "%GODOT_PATH_FILE%" (
     set /p GODOT_EXE=<"%GODOT_PATH_FILE%"
@@ -28,15 +29,17 @@ if not exist "!GODOT_EXE!" (
 :found
 echo !GODOT_EXE!>"%GODOT_PATH_FILE%"
 
-set NEEDS_IMPORT=1
-if exist "%~dp0.godot\global_script_class_cache.cfg" (
-    findstr /C:"Sky3D" "%~dp0.godot\global_script_class_cache.cfg" >nul 2>&1
-    if not errorlevel 1 set NEEDS_IMPORT=0
-)
+set CURRENT_COMMIT=
+for /f "delims=" %%i in ('git -C "%~dp0." rev-parse HEAD 2^>nul') do set CURRENT_COMMIT=%%i
 
-if "%NEEDS_IMPORT%"=="1" (
-    echo Importuje projekt ^(brakuje lub niekompletny jest cache klas^), to potrwa chwile...
+set LAST_COMMIT=
+if exist "%LAST_IMPORT_FILE%" set /p LAST_COMMIT=<"%LAST_IMPORT_FILE%"
+
+if defined CURRENT_COMMIT if not "!CURRENT_COMMIT!"=="!LAST_COMMIT!" (
+    echo Wykryto nowy kod od ostatniego importu - czyszcze cache Godota i importuje od nowa, to potrwa chwile...
+    if exist "%~dp0.godot" rmdir /s /q "%~dp0.godot"
     "!GODOT_EXE!" --headless --editor --quit --path "%~dp0."
+    echo !CURRENT_COMMIT!>"%LAST_IMPORT_FILE%"
 )
 
 "!GODOT_EXE!" --path "%~dp0."

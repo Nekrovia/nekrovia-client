@@ -52,6 +52,5 @@ func _show_help() -> void:
 	help_panel.show()
 
 func _leave_server() -> void:
-	if multiplayer.multiplayer_peer:
-		multiplayer.multiplayer_peer.close()
+	Net.leave_server()
 	get_tree().change_scene_to_file("res://scenes/menu/main_menu.tscn")

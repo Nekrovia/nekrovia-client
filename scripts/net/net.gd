@@ -20,6 +20,7 @@ var my_name: String = ""
 var my_role: String = ""
 var my_token: String = ""
 var my_client_id: String = ""
+var _leaving_intentionally: bool = false
 
 # Server-side: every identified peer. Client-side: mirrored copy the server
 # broadcasts on every join/leave, so the client can look up e.g. names.
@@ -105,8 +106,17 @@ func _on_connection_failed() -> void:
 	push_error("Net[client]: connection failed")
 	connection_failed.emit()
 
+func leave_server() -> void:
+	_leaving_intentionally = true
+	if multiplayer.multiplayer_peer:
+		multiplayer.multiplayer_peer.close()
+
 func _on_server_disconnected() -> void:
-	push_error("Net[client]: lost connection to server")
+	if _leaving_intentionally:
+		print("Net[client]: disconnected from server (left intentionally)")
+	else:
+		push_error("Net[client]: lost connection to server")
+	_leaving_intentionally = false
 	disconnected_from_server.emit()
 
 @rpc("authority", "reliable")
