@@ -21,4 +21,10 @@ if not exist "!GODOT_EXE!" (
 )
 
 echo !GODOT_EXE!>"%GODOT_PATH_FILE%"
+
+if not exist "%~dp0.godot\global_script_class_cache.cfg" (
+    echo Pierwsze uruchomienie na tym komputerze - importuje projekt, to potrwa chwile...
+    "!GODOT_EXE!" --headless --editor --quit --path "%~dp0."
+)
+
 "!GODOT_EXE!" --path "%~dp0."
