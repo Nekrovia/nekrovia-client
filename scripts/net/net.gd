@@ -6,6 +6,7 @@ signal connected_to_server()
 signal connection_failed()
 signal disconnected_from_server()
 signal world_state_updated(key: String, value: Variant)
+signal world_state_received()
 
 const DEFAULT_PORT := 8910
 const SAVE_DIR := "world_data"
@@ -106,6 +107,7 @@ func _on_server_disconnected() -> void:
 func _welcome(state: Dictionary) -> void:
 	world_state = state
 	print("Net[client]: received world state (%d keys)" % world_state.size())
+	world_state_received.emit()
 
 @rpc("authority", "reliable")
 func _peer_list(list: Dictionary) -> void:

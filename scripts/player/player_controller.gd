@@ -16,10 +16,11 @@ var _flying := false
 var _fly_speed_mult := 1.0
 
 func _ready() -> void:
-	if not is_multiplayer_authority():
-		set_physics_process(false)
-		set_process_unhandled_input(false)
-		return
+	# No per-peer player spawning/replication exists yet (each client's Player
+	# node is local-only, not shared) so there is no real multiplayer
+	# authority to gate on here. Once server-side spawning with proper
+	# authority assignment exists, this needs to check is_multiplayer_authority()
+	# again so remote players' avatars don't process local input.
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -21,6 +21,7 @@ func _ready() -> void:
 		_add_server_row(server)
 
 	Net.connected_to_server.connect(_on_connected)
+	Net.world_state_received.connect(_on_world_state_received)
 	Net.connection_failed.connect(_on_connection_failed)
 	Net.disconnected_from_server.connect(_on_connection_failed)
 
@@ -69,6 +70,9 @@ func _on_join_pressed(server: Dictionary) -> void:
 	Net.join(server["address"], server["port"], "Gracz", "player", server.get("token", ""))
 
 func _on_connected() -> void:
+	status_label.text = "Polaczono, wczytuje swiat..."
+
+func _on_world_state_received() -> void:
 	status_label.text = "Polaczono!"
 	get_tree().change_scene_to_file("res://scenes/world/test_world.tscn")
 
