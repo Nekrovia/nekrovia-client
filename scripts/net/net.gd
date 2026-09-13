@@ -58,9 +58,12 @@ func join(address: String, port: int = DEFAULT_PORT, display_name: String = "pla
 	my_token = token
 	my_client_id = client_id
 	multiplayer.multiplayer_peer = peer
-	multiplayer.connected_to_server.connect(_on_connected_to_server)
-	multiplayer.connection_failed.connect(_on_connection_failed)
-	multiplayer.server_disconnected.connect(_on_server_disconnected)
+	if not multiplayer.connected_to_server.is_connected(_on_connected_to_server):
+		multiplayer.connected_to_server.connect(_on_connected_to_server)
+	if not multiplayer.connection_failed.is_connected(_on_connection_failed):
+		multiplayer.connection_failed.connect(_on_connection_failed)
+	if not multiplayer.server_disconnected.is_connected(_on_server_disconnected):
+		multiplayer.server_disconnected.connect(_on_server_disconnected)
 	print("Net[client]: connecting to %s:%d..." % [address, port])
 
 # --- Server-side connection handling ---
