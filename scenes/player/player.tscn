@@ -28,11 +28,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15941179, -0.28908753)
 current = true
 
 [node name="ThirdPersonArm" type="SpringArm3D" parent="Head" unique_id=1642894075]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0.5, 0)
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0.50000006, 2.1182656)
 spring_length = 4.0
 
 [node name="ThirdPersonCamera" type="Camera3D" parent="Head/ThirdPersonArm" unique_id=635732308]
-transform = Transform3D(-1, 1.4412555e-08, 8.8619025e-08, 2.882511e-08, 0.9863169, 0.16486037, -8.503037e-08, 0.16486037, -0.9863169, -0.56378645, 0, -2.339578)
+transform = Transform3D(-1, 1.4412555e-08, 8.8619025e-08, 2.882511e-08, 0.9863169, 0.16486037, -8.503037e-08, 0.16486037, -0.9863169, -0.56378627, 0, -0.03128141)
 
 [node name="CrosshairLayer" type="CanvasLayer" parent="." unique_id=431710283]
 
@@ -41,5 +41,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_crosshair")
