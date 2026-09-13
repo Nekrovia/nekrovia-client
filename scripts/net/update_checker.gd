@@ -24,27 +24,34 @@ func check_for_update() -> void:
 
 func _on_request_completed(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if response_code != 200:
+		print("UpdateChecker: check failed (HTTP %d)" % response_code)
 		check_failed.emit("HTTP %d" % response_code)
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("sha"):
+		print("UpdateChecker: check failed (unexpected response)")
 		check_failed.emit("unexpected response")
 		return
 	var remote_sha: String = parsed["sha"]
 	var local_sha := _get_local_commit()
 	if local_sha == "":
+		print("UpdateChecker: could not read local git commit")
 		check_failed.emit("could not read local git commit")
 	elif local_sha == remote_sha:
+		print("UpdateChecker: up to date (%s)" % local_sha.substr(0, 7))
 		up_to_date.emit()
 	else:
+		print("UpdateChecker: update available, local=%s remote=%s" % [local_sha.substr(0, 7), remote_sha.substr(0, 7)])
 		update_available.emit(remote_sha)
 
 func pull_update() -> void:
 	var output := []
 	var exit_code := OS.execute("git", ["-C", ProjectSettings.globalize_path("res://"), "pull"], output)
 	if exit_code == 0:
+		print("UpdateChecker: pulled successfully")
 		update_applied.emit()
 	else:
+		print("UpdateChecker: pull failed: %s" % String("\n").join(output))
 		update_failed.emit(String("\n").join(output))
 
 func _get_local_commit() -> String:
